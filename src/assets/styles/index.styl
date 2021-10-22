@@ -1,0 +1,25 @@
+.vue-circular-progress
+  display: inline-block
+  .circle
+    position: relative
+    .current-counter
+      position: absolute
+      top: 50%
+      left: 50%
+      transform: translate(-50%, -50%)
+  
+  .circle__svg
+    transform: rotate(-90deg)
+
+  .circle__progress
+    fill: none
+    stroke-opacity: 0.3
+    stroke-linecap: round
+
+  .circle__progress--fill
+    --initialStroke: 0
+    --transitionDuration: 0
+    stroke-opacity: 1
+    stroke-dasharray: (@--initialStroke)
+    stroke-dashoffset: (@--initialStroke)
+    transition: stroke-dashoffset (@--transitionDuration) ease
