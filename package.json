@@ -1,11 +1,16 @@
 {
-  "name": "vue3-circle-progress",
-  "version": "0.1.0",
-  "private": true,
+  "name": "vue3-circular-progress",
+  "version": "1.0.0",
+  "private": false,
+  "author": "w2xi",
+  "main": "./dist/circular-progress.umd.min.js",
+  "description": "A circular progress bar for Vue3",
+
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "build-lib": "vue-cli-service build --target lib --name circular-progress ./src/index.js"
   },
   "dependencies": {
     "core-js": "^3.6.5",
@@ -21,5 +26,29 @@
     "eslint-plugin-vue": "^7.0.0",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/w2xi/vue3-circular-progress.git"
+  },
+  "bugs": {
+    "url": "https://github.com/w2xi/vue3-circular-progress/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "dist/*",
+    "src/*",
+    "package.json",
+    "*.js",
+    "README.md"
+  ],
+  "keywords": [
+    "vue",
+    "vue3",
+    "progress",
+    "component",
+    "circular progress",
+    "circle progress",
+    "vue progress"
+  ]
 }

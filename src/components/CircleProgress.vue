@@ -1,50 +1,33 @@
 <template>
-  <div class="container">
-    <div class="vue-circular-progress">
-      <div class="circle">
-        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="84" height="84" class="circle__svg">
-          <circle 
-            cx="42" 
-            cy="42" 
-            r="40" 
-            stroke="#f00" 
-            stroke-width="2" 
-            class="circle__progress circle__progress--path"
-          />
-          <circle 
-            cx="42" 
-            cy="42" 
-            r="40" 
-            stroke="#2BC9A6" 
-            stroke-width="4"
-            stroke-linecap="round"
-            :style="{ 
-              strokeDasharray: circumference,
-              strokeDashoffset: offset,
-              '--initialStroke': circumference,
-              '--transitionDuration': 1000,
-            }"
-            class="circle__progress circle__progress--fill"
-          />
-        </svg> 
-        <div v-if="showPercent" class="current-counter">
-          {{ currentPercent + '%' }}
-        </div>
-      </div>
+  <div class="vue-circle-progress" v-bind="wrapAttr">
+    <svg v-bind="svgAttr" class="svg-wrapper">
+      <circle 
+        v-bind="circleBgAttr"
+      />
+      <circle 
+        v-bind="circleFgAttr"
+      />
+    </svg> 
+    <div v-if="showPercent" class="current-percent" :style="{ color: fillColor }">
+      <template v-if="$slots.content">
+        <slot name="content" :percent="currentPercent"></slot>
+      </template>
+      <template v-else>
+        {{ currentPercent }}
+      </template> 
     </div>
   </div>
 </template>
 
 <script>
-/* eslint-disable */
-import { ref, computed } from '@vue/reactivity'
+import { ref, computed, onMounted, watch } from 'vue'
 
 export default {
-  name: 'xs-circle-progress',
+  name: 'circular-progress',
   props: {
-    radius: {
+    size: {
       type: Number,
-      default: 40
+      default: 180
     },
     borderWidth: {
       type: Number,
@@ -62,10 +45,6 @@ export default {
       type: String,
       default: '#dddddd'
     },
-     background: {
-      type: String,
-      default: "none"
-    },
     percent: {
       type: Number,
       default: 50
@@ -80,52 +59,82 @@ export default {
     },
     showPercent: {
       type: Boolean,
-      default: true
-    }
+      default: false
+    },
   },
   setup(props) {
-    const C = Math.PI * 2 * 40
-    const circumference = ref(C)
-    const currentPercent = ref(0)
-    const offset = ref(circumference.value * ( 100 - 0 ) / 100)
+    const circleRadiusBg = () => {
+      let value = (props.size - props.borderBgWidth) * 0.5
+      if (props.borderWidth > props.borderBgWidth) {
+        value -= (props.borderWidth - props.borderBgWidth) * 0.5
+      }
+      return value;
+    };
 
-    const radius = props.radius
+    const circleRadiusFg = () => {
+      let value = (props.size - props.borderWidth) * 0.5
+      if (props.borderBgWidth > props.borderWidth) {
+        value -= (props.borderBgWidth - props.borderWidth) * 0.5
+      }
+      return value;
+    };
+
+    const circumference = 2 * Math.PI * circleRadiusFg()
+    const offset = ref(circumference)
+    const currentPercent = ref(0)
+
+    const wrapStyle = {
+      height: props.size + "px",
+      width: props.size + "px",
+      position: "relative"
+    };
+
+    const wrapAttr = {
+      class: props.class,
+      style: wrapStyle
+    };
 
     const svgAttr = {
       version: '1.1',
       xmlns: 'http://www.w3.org/2000/svg',
-      viewBox: `${radius / 2} ${radius / 2} ${radius} ${radius}`,
+      height: props.size,
+      width: props.size
     }
 
+    const cx = props.size / 2
+    const cy = props.size / 2
+
     const circleBgAttr = {
-      cx: radius,
-      cy: radius,
-      r: getCircleBgRadius(),
+      cx,
+      cy,
+      r: circleRadiusBg(),
+      fill: 'none',
       stroke: props.emptyColor,
       "stroke-width": props.borderBgWidth,
-      fill: props.background,
     }
 
     const circleFgAttr = computed(() => ({
-      cx: radius,
-      cy: radius,
-      r: getCircleRadius(),
+      cx,
+      cy,
+      r: circleRadiusFg(),
       fill: "none",
+      stroke: props.fillColor,
       "stroke-width": props.borderWidth,
       "stroke-dasharray": circumference,
       "stroke-dashoffset": offset.value,
       "stroke-linecap": props.linecap,
       ...(props.transition && {
-        style: { transition: `stroke-dashoffset ${props.transition}ms` }
+        style: { 
+          transition: `stroke-dashoffset ${props.transition}ms ease`,
+        }
       })
     }))
-    
-    function getCircleBgRadius(){
-      return radius + props.borderBgWidth
-    }
-    
-    function getCircleRadius(){
-      return radius + props.borderWidth
+
+
+    function updatePercent() {
+      const percent = Math.round(props.percent)
+
+      animateValue(percent)
     }
 
     function animateValue(to) {
@@ -134,23 +143,35 @@ export default {
       const counter = setInterval(() => {
         if (step > 0) {
           currentPercent.value += 1
-          offset.value = circumference.value * ( 100 - currentPercent.value ) / 100
-
           if (currentPercent.value >= to) {
             clearInterval(counter)
           }
         } else {
           currentPercent.value -= 1
-          offset.value = circumference.value * ( 100 - currentPercent.value ) / 100
-
+          
           if (currentPercent.value <= to) {
             clearInterval(counter)
           }
         }
-      }, delay);
+
+        offset.value = circumference * ( 100 - currentPercent.value ) / 100
+      }, delay)
     }
 
-    animateValue(80)
+    onMounted(() => {
+      const percent = Math.round(props.percent)
+
+      if ( percent !== 0 ){
+        updatePercent()
+      }
+    })
+
+    watch(
+      () => props.percent,
+      () => {
+        updatePercent()
+      }
+    )
 
     return {
       svgAttr,
@@ -158,26 +179,20 @@ export default {
       currentPercent,
       circleBgAttr,
       circleFgAttr,
-      offset,
-      
+      wrapAttr
     }
   },
 }
 </script>
 
-
 <style lang="stylus" scoped>
-
-@import '~@/assets/styles/index.styl'
-
-.container
-  height: 84px
-  width: 84px
-  top: 10px
-  left: 100px
-  display: flex
-  align-items: center
-  justify-content: center
-  margin: 50px auto
-
+.vue-circle-progress
+  position relative
+  .svg-wrapper
+    transform: rotate(-90deg)
+  .current-percent
+    position: absolute
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%)
 </style>
