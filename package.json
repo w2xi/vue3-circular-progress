@@ -36,11 +36,7 @@
   },
   "license": "MIT",
   "files": [
-    "dist/*",
-    "src/*",
-    "package.json",
-    "*.js",
-    "README.md"
+    "dist"
   ],
   "keywords": [
     "vue",
